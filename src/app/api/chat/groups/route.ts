@@ -1,0 +1,185 @@
+import { NextResponse } from "next/server";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
+import { createClient } from "@/lib/server";
+import { sendMail } from "@/lib/mailer";
+import { createNotification } from "@/lib/createNotification";
+
+function adminClient() {
+  return createSupabaseAdmin(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
+
+function isStaffRole(role?: string | null) {
+  return role === "admin" || role === "manager" || role === "supervisor";
+}
+
+export async function POST(req: Request) {
+  try {
+    const { name, memberIds } = await req.json();
+
+    if (!name) {
+      return NextResponse.json(
+        { error: "Group name is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(memberIds) || memberIds.length === 0) {
+      return NextResponse.json(
+        { error: "Please select at least one employee." },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    const admin = adminClient();
+
+    const { data: currentProfile } = await admin
+      .from("profiles")
+      .select("id, role, full_name")
+      .eq("id", user.id)
+      .single();
+
+    if (!currentProfile || !isStaffRole(currentProfile.role)) {
+      return NextResponse.json(
+        { error: "Only authorized staff can create group chats." },
+        { status: 403 }
+      );
+    }
+
+    const { data: group, error: groupError } = await admin
+      .from("chats")
+      .insert({
+        type: "group",
+        name,
+        created_by: user.id,
+        is_approved: true,
+      })
+      .select("id, name")
+      .single();
+
+    if (groupError || !group) {
+      return NextResponse.json(
+        { error: groupError?.message || "Failed to create group." },
+        { status: 400 }
+      );
+    }
+
+    const uniqueMemberIds = Array.from(new Set([user.id, ...memberIds]));
+
+    const membersToInsert = uniqueMemberIds.map((memberId) => ({
+      chat_id: group.id,
+      user_id: memberId,
+      role: memberId === user.id ? "owner" : "member",
+    }));
+
+    const { error: memberError } = await admin
+      .from("chat_members")
+      .insert(membersToInsert);
+
+    if (memberError) {
+      return NextResponse.json({ error: memberError.message }, { status: 400 });
+    }
+
+    const { data: addedEmployees } = await admin
+    .from("profiles")
+    .select("id, email, full_name, first_name, job_title")
+    .in("id", memberIds);
+
+    for (const employee of addedEmployees || []) {
+      await createNotification({
+        admin,
+        userId: employee.id,
+        actorId: user.id,
+        title: "Added to Group Chat",
+        message: `You have been added to ${name}.`,
+        type: "Chat",
+        link: "/dashboard/chat",
+      });
+
+      if (!employee.email) continue;
+
+    try {
+      await sendMail({
+          to: employee.email,
+          subject: `You Have Been Added to ${name}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;">
+              <div style="max-width:620px; margin:auto; background:#ffffff; border-radius:14px; overflow:hidden;">
+                <div style="background:#000000; color:#ffffff; padding:28px; text-align:center;">
+                  <h1 style="margin:0; font-size:24px;">You Have Been Added to a Group Chat</h1>
+                  <p style="margin-top:8px; font-size:14px; color:#e5e5e5;">
+                    Errandly247 Employee Dashboard
+                  </p>
+                </div>
+
+                <div style="padding:28px; color:#222;">
+                  <p style="font-size:16px;">
+                    Hello <strong>${employee.full_name || employee.first_name || "Team Member"}</strong>,
+                  </p>
+
+                  <p style="font-size:15px; line-height:1.7;">
+                    You have been added to a company group chat for communication, updates, and meeting discussions.
+                    Please log in to your dashboard to view the group, follow updates, and participate when required.
+                  </p>
+
+                  <div style="background:#f8f8f8; border:1px solid #eeeeee; padding:18px; border-radius:10px; margin:24px 0;">
+                    <p style="margin:0 0 10px; font-size:15px;">
+                      <strong>Group Name:</strong> ${name}
+                    </p>
+                    <p style="margin:0 0 10px; font-size:15px;">
+                      <strong>Dashboard Section:</strong> Chat
+                    </p>
+                    <p style="margin:0; font-size:15px;">
+                      <strong>Action Required:</strong> Log in and check the group chat
+                    </p>
+                  </div>
+
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/chat"
+                    style="display:inline-block; background:#000000; color:#ffffff; padding:14px 22px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">
+                    Open Chat
+                  </a>
+
+                  <p style="margin-top:28px; font-size:15px;">
+                    Regards,<br/>
+                    <strong>Support Team</strong><br/>
+                    Errandly247
+                  </p>
+                </div>
+
+                <div style="background:#fafafa; padding:16px; text-align:center; font-size:12px; color:#777;">
+                  This is an automated company notification.
+                </div>
+              </div>
+            </div>
+          `,
+        });
+      } catch (mailError) {
+        console.error("Group added email failed:", mailError);
+      }
+    }
+
+    return NextResponse.json({
+      message: "Group chat created successfully.",
+      group,
+    });
+  } catch (error) {
+    console.error("Create group chat error:", error);
+
+    return NextResponse.json(
+      { error: "Something went wrong while creating group chat." },
+      { status: 500 }
+    );
+  }
+}
