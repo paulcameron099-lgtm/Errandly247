@@ -116,7 +116,7 @@ export default function TrackContent() {
 
         {trackingInfo && (
           <div className="overflow-hidden rounded-3xl bg-white shadow-xl">
-            <div className="bg-[#4d148c] p-6 text-white md:p-8">
+            <div className="bg-black p-6 text-white md:p-8">
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-sm text-white/80">Tracking number</p>

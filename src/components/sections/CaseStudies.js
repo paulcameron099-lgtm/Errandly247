@@ -2,7 +2,7 @@
 import React from 'react'
 import { MdHexagon } from "react-icons/md";
 import Image from 'next/image';
-import CEO from "../../../public/videos/CEO.avif";
+import CEO from "../../../public/images/CEO.webp";
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 

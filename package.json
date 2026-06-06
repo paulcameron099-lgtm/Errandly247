@@ -3,11 +3,10 @@
   "version": "2.3.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint ."
-  },
+  "dev": "next dev --webpack",
+  "build": "next build --webpack",
+  "start": "next start"
+},
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
     "@fullcalendar/daygrid": "^6.1.19",
