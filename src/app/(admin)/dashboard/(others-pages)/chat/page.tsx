@@ -387,16 +387,26 @@ useEffect(() => {
           return;
         }
 
+      let typingName = "Someone";
+
+      const chat = chats.find((item) => item.id === row.chat_id);
+
+      if (chat?.type === "private" && chat.other_user?.id === row.user_id) {
+        typingName = chat.other_user.full_name || "Someone";
+      } else {
         const { data: profile } = await supabase
           .from("profiles")
           .select("full_name")
           .eq("id", row.user_id)
-          .single();
+          .maybeSingle();
 
-        setSidebarTyping((prev) => ({
-          ...prev,
-          [row.chat_id]: `${profile?.full_name || "Someone"} is typing...`,
-        }));
+        typingName = profile?.full_name || "Someone";
+      }
+
+      setSidebarTyping((prev) => ({
+        ...prev,
+        [row.chat_id]: `${typingName} is typing...`,
+      }));
 
         setTimeout(() => {
           setSidebarTyping((prev) => {
@@ -2602,8 +2612,12 @@ function MessageBubble({
                 className="max-h-64 rounded-xl object-cover"
               />
             </a>
-          ) : message.message_type === "voice" && message.voice_url ? (
-            <audio controls src={message.voice_url} className="w-64" />
+            ) : message.message_type === "voice" && (message.voice_url || message.file_url) ? (
+            <audio
+              controls
+              src={message.voice_url || message.file_url || ""}
+              className="w-64 max-w-full"
+            />
           ) : message.message_type === "file" && message.file_url ? (
             <a
               href={message.file_url}

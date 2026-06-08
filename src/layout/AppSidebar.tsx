@@ -98,8 +98,20 @@ const getOthersItems = (): NavItem[] => [
 ];
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+ const {
+  isExpanded,
+  isMobileOpen,
+  isHovered,
+  setIsHovered,
+  toggleMobileSidebar,
+} = useSidebar();
    const pathname = usePathname();
+
+   const closeMobileSidebar = () => {
+  if (isMobileOpen) {
+    toggleMobileSidebar();
+  }
+}
 
   const [role, setRole] = useState<Role>("employee");
 
@@ -180,6 +192,7 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 href={nav.path}
+                onClick={closeMobileSidebar}
                 className={`menu-item group ${
                   isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                 }`}
@@ -217,6 +230,7 @@ const AppSidebar: React.FC = () => {
                   <li key={subItem.name}>
                     <Link
                       href={subItem.path}
+                      onClick={closeMobileSidebar}
                       className={`menu-dropdown-item ${
                         isActive(subItem.path)
                           ? "menu-dropdown-item-active"
@@ -343,7 +357,7 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link href="/">
+        <Link href="/" onClick={closeMobileSidebar}>
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image

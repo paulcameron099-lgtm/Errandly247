@@ -84,12 +84,12 @@ export async function POST(req: Request) {
     .insert({
       chat_id: chatId,
       sender_id: user.id,
-      message: finalMessageType === "image" ? "Image" : file.name,
-      message_type: finalMessageType,
-      file_url: fileUrl,
+      message: messageType === "voice" ? "Voice note" : file.name,
+      message_type: messageType,
+      file_url: messageType === "voice" ? null : publicUrl,
       file_name: file.name,
       file_type: file.type,
-      voice_url: finalMessageType === "voice" ? fileUrl : null,
+      voice_url: messageType === "voice" ? publicUrl : null,
     })
     .select(
       `
