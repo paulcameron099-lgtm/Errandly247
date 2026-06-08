@@ -200,14 +200,31 @@ useEffect(() => {
     .on(
       "postgres_changes",
       {
-        event: "*",
+        event: "INSERT",
         schema: "public",
         table: "chat_messages",
         filter: `chat_id=eq.${chatId}`,
       },
-      async () => {
-        await fetchMessages(chatId, false);
-        await fetchSidebarData();
+      (payload) => {
+        const newMessage = payload.new as ChatMessage;
+
+        upsertMessage(newMessage);
+        updateSidebarLastMessage(newMessage);
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "chat_messages",
+        filter: `chat_id=eq.${chatId}`,
+      },
+      (payload) => {
+        const updatedMessage = payload.new as ChatMessage;
+
+        upsertMessage(updatedMessage);
+        updateSidebarLastMessage(updatedMessage);
       }
     )
     .subscribe((status) => {
@@ -286,8 +303,6 @@ useEffect(() => {
       },
       async (payload) => {
         const newMessage = payload.new as ChatMessage;
-
-        if (newMessage.sender_id === currentProfile.id) return;
 
         const belongsToMySidebar = chats.some(
           (chat) => chat.id === newMessage.chat_id
@@ -701,6 +716,44 @@ function hasPendingRequestWith(employeeId: string) {
   );
 }
 
+function upsertMessage(newMessage: ChatMessage) {
+  setMessages((prev) => {
+    const exists = prev.some((msg) => msg.id === newMessage.id);
+
+    if (exists) {
+      return prev.map((msg) =>
+        msg.id === newMessage.id ? newMessage : msg
+      );
+    }
+
+    return [...prev, newMessage];
+  });
+}
+
+function getLastMessageText(message: ChatMessage) {
+  if (message.message_type === "image") return "📷 Image";
+  if (message.message_type === "voice") return "🎤 Voice note";
+  if (message.message_type === "file") {
+    return `📎 ${message.file_name || "File"}`;
+  }
+
+  return message.message || "";
+}
+
+function updateSidebarLastMessage(message: ChatMessage) {
+  setChats((prev) =>
+    prev.map((chat) =>
+      chat.id === message.chat_id
+        ? {
+            ...chat,
+            last_message: getLastMessageText(message),
+            last_message_at: message.created_at,
+          }
+        : chat
+    )
+  );
+}
+
 async function fetchMessages(chatId: string, showLoader = true) {
   if (showLoader) setMessagesLoading(true);
 
@@ -746,76 +799,52 @@ async function handleSendMessage(e: React.FormEvent<HTMLFormElement>) {
   setSendingMessage(true);
   setError("");
 
-  const res = await fetch("/api/chat/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-    chatId: selectedChat.id,
-    message: messageText.trim(),
-    replyTo: replyingTo?.id || null,
-    }),
-  });
+  const textToSend = messageText.trim();
+  const replyToMessage = replyingTo;
 
-  const data = await res.json();
+  try {
+    const res = await fetch("/api/chat/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        chatId: selectedChat.id,
+        message: textToSend,
+        replyTo: replyToMessage?.id || null,
+      }),
+    });
 
-  if (!res.ok) {
-    setError(data.error || "Failed to send message.");
-    setSendingMessage(false);
-    return;
-  }
+    const data = await res.json();
 
-  if (data.chatMessage && selectedChat?.id) {
-  setMessages((prev) => [...prev, data.chatMessage]);
+    if (!res.ok) {
+      setError(data.error || "Failed to send message.");
+      return;
+    }
 
-  setChats((prev) =>
-    prev.map((chat) =>
-      chat.id === selectedChat.id
-        ? {
-            ...chat,
-            last_message:
-              data.chatMessage.message_type === "image"
-                ? "📷 Image"
-                : data.chatMessage.message_type === "voice"
-                ? "🎤 Voice note"
-                : data.chatMessage.message_type === "file"
-                ? `📎 ${data.chatMessage.file_name || "File"}`
-                : data.chatMessage.message || "",
-            last_message_at: data.chatMessage.created_at,
-          }
-        : chat
-    )
-  );
-}
-
-  setChats((prev) =>
-  prev.map((chat) =>
-    chat.id === selectedChat.id
-      ? {
-          ...chat,
-          last_message: messageText.trim(),
-          last_message_at: new Date().toISOString(),
-        }
-      : chat
-  )
-);
-    setMessages((prev) => [
-    ...prev,
-    {
+    if (data.chatMessage) {
+      upsertMessage({
         ...data.chatMessage,
-        reply_message: replyingTo
-        ? {
-            id: replyingTo.id,
-            message: replyingTo.message,
-            sender_id: replyingTo.sender_id,
+        reply_message: replyToMessage
+          ? {
+              id: replyToMessage.id,
+              message: replyToMessage.message,
+              sender_id: replyToMessage.sender_id,
             }
-        : null,
-    },
-    ]);
+          : data.chatMessage.reply_message || null,
+      });
+
+      updateSidebarLastMessage(data.chatMessage);
+    }
 
     setMessageText("");
     setReplyingTo(null);
+  } catch (error) {
+    console.error("Send message error:", error);
+    setError("Failed to send message.");
+  } finally {
+    setSendingMessage(false);
+  }
 }
 
 async function handleMessageAction(
@@ -1052,22 +1081,10 @@ async function handleFileUpload(file: File) {
     return;
   }
 
-  setMessages((prev) => [...prev, data.chatMessage]);
-
-  setChats((prev) =>
-    prev.map((chat) =>
-      chat.id === selectedChat.id
-        ? {
-            ...chat,
-            last_message:
-              data.chatMessage.message_type === "image"
-                ? "📷 Image"
-                : `📎 ${data.chatMessage.file_name}`,
-            last_message_at: new Date().toISOString(),
-          }
-        : chat
-    )
-  );
+if (data.chatMessage) {
+  upsertMessage(data.chatMessage);
+  updateSidebarLastMessage(data.chatMessage);
+}
 
   setUploadingFile(false);
 }
@@ -1114,23 +1131,10 @@ async function startVoiceRecording() {
         setError("");
 
         if (data.chatMessage) {
-          setMessages((prev) => [...prev, data.chatMessage]);
-
-          setChats((prev) =>
-            prev.map((chat) =>
-              chat.id === selectedChat.id
-                ? {
-                    ...chat,
-                    last_message: "🎤 Voice note",
-                    last_message_at:
-                      data.chatMessage.created_at || new Date().toISOString(),
-                  }
-                : chat
-            )
-          );
+          upsertMessage(data.chatMessage);
+          updateSidebarLastMessage(data.chatMessage);
 
           await fetchMessages(selectedChat.id, false);
-          await fetchSidebarData();
         }
       } catch (uploadError) {
         console.error("Voice upload error:", uploadError);
