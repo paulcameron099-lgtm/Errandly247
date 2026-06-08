@@ -192,67 +192,22 @@ useEffect(() => {
 useEffect(() => {
   if (!selectedChat?.id) return;
 
+  const chatId = selectedChat.id;
   const supabase = createClient();
 
   const channel = supabase
-    .channel(`chat-room-${selectedChat.id}`)
+    .channel(`chat-room-${chatId}`)
     .on(
       "postgres_changes",
       {
-        event: "INSERT",
+        event: "*",
         schema: "public",
         table: "chat_messages",
-        filter: `chat_id=eq.${selectedChat.id}`,
-      },
-      async (payload) => {
-        const newMessage = payload.new as ChatMessage;
-
-        if (newMessage.sender_id === currentProfile?.id) return;
-
-        await fetchMessages(selectedChat.id, false);
-
-        setChats((prev) =>
-          prev.map((chat) =>
-            chat.id === selectedChat.id
-              ? {
-                  ...chat,
-                  last_message:
-                    newMessage.message_type === "image"
-                      ? "📷 Image"
-                      : newMessage.message_type === "voice"
-                      ? "🎤 Voice note"
-                      : newMessage.message_type === "file"
-                      ? `📎 ${newMessage.file_name || "File"}`
-                      : newMessage.message || "",
-                  last_message_at: newMessage.created_at,
-                }
-              : chat
-          )
-        );
-      }
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: "chat_messages",
-        filter: `chat_id=eq.${selectedChat.id}`,
+        filter: `chat_id=eq.${chatId}`,
       },
       async () => {
-        await fetchMessages(selectedChat.id, false);
-      }
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "DELETE",
-        schema: "public",
-        table: "chat_messages",
-        filter: `chat_id=eq.${selectedChat.id}`,
-      },
-      async () => {
-        await fetchMessages(selectedChat.id, false);
+        await fetchMessages(chatId, false);
+        await fetchSidebarData();
       }
     )
     .on(
@@ -263,7 +218,7 @@ useEffect(() => {
         table: "chat_reactions",
       },
       async () => {
-        await fetchMessages(selectedChat.id, false);
+        await fetchMessages(chatId, false);
       }
     )
     .subscribe();
@@ -271,7 +226,7 @@ useEffect(() => {
   return () => {
     supabase.removeChannel(channel);
   };
-}, [selectedChat?.id, currentProfile?.id]);
+}, [selectedChat?.id]);
 
 useEffect(() => {
   if (!selectedChat?.id || !currentProfile?.id) return;
@@ -393,7 +348,7 @@ useEffect(() => {
   return () => {
     supabase.removeChannel(channel);
   };
-}, [currentProfile?.id, selectedChat?.id, chats]);
+}, [currentProfile?.id, selectedChat?.id]);
 
 useEffect(() => {
   if (!currentProfile?.id) return;
@@ -456,72 +411,8 @@ useEffect(() => {
   return () => {
     supabase.removeChannel(channel);
   };
-}, [currentProfile?.id, chats]);
+}, [currentProfile?.id]);
 
-useEffect(() => {
-  if (!selectedChat?.id) return;
-
-  const supabase = createClient();
-
-  const channel = supabase
-    .channel(`chat-messages-${selectedChat.id}-${Date.now()}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "chat_messages",
-        filter: `chat_id=eq.${selectedChat.id}`,
-      },
-      async () => {
-        await fetchMessages(selectedChat.id, false);
-        await fetchSidebarData();
-      }
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "chat_reactions",
-      },
-      async () => {
-        await fetchMessages(selectedChat.id, false);
-      }
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [selectedChat?.id]);
-
-useEffect(() => {
-  if (!selectedChat?.id) return;
-
-  const supabase = createClient();
-
-  const channel = supabase
-    .channel(`live-chat-${selectedChat.id}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "chat_messages",
-        filter: `chat_id=eq.${selectedChat.id}`,
-      },
-      async () => {
-        await fetchMessages(selectedChat.id, false);
-        await fetchSidebarData();
-      }
-    )
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [selectedChat?.id]);
 
 async function fetchSidebarData() {
   setLoading(true);
@@ -2717,10 +2608,12 @@ function MessageBubble({
 
            {isActive && (
             <div
-                onClick={(e) => e.stopPropagation()}
-                className={`absolute top-1 z-50 w-44 rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-700 dark:bg-gray-900 ${
-                isMine ? "right-full mr-2" : "left-full ml-2"
-                }`}
+              onClick={(e) => e.stopPropagation()}
+              className={`absolute top-full z-50 mt-2 w-44 rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-700 dark:bg-gray-900 sm:top-1 sm:mt-0 ${
+                isMine
+                  ? "right-0 sm:right-full sm:mr-2"
+                  : "left-0 sm:left-full sm:ml-2"
+              }`}
             >
                 <div className="mb-2 flex items-center justify-center gap-1 rounded-full bg-gray-50 px-2 py-1 dark:bg-gray-800">
                 {["👍", "✅", "🙏", "🔥", "👀"].map((emoji) => (
