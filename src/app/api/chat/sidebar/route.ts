@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 import { createClient } from "@/lib/server";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function adminClient() {
   return createSupabaseAdmin(

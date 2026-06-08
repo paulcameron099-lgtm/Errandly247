@@ -210,18 +210,9 @@ useEffect(() => {
         await fetchSidebarData();
       }
     )
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "chat_reactions",
-      },
-      async () => {
-        await fetchMessages(chatId, false);
-      }
-    )
-    .subscribe();
+    .subscribe((status) => {
+      console.log("Chat realtime status:", status);
+    });
 
   return () => {
     supabase.removeChannel(channel);
@@ -418,7 +409,9 @@ async function fetchSidebarData() {
   setLoading(true);
   setError("");
 
-  const res = await fetch("/api/chat/sidebar");
+  const res = await fetch("/api/chat/sidebar", {
+    cache: "no-store",
+  });
   const data = await res.json();
 
   if (!res.ok) {
@@ -729,7 +722,12 @@ async function fetchMessages(chatId: string, showLoader = true) {
 
     setChats((prev) =>
       prev.map((chat) =>
-        chat.id === chatId ? { ...chat, unread_count: 0 } : chat
+        chat.id === chatId
+          ? {
+              ...chat,
+              unread_count: 0,
+            }
+          : chat
       )
     );
   } catch (error) {
@@ -767,6 +765,29 @@ async function handleSendMessage(e: React.FormEvent<HTMLFormElement>) {
     setSendingMessage(false);
     return;
   }
+
+  if (data.chatMessage && selectedChat?.id) {
+  setMessages((prev) => [...prev, data.chatMessage]);
+
+  setChats((prev) =>
+    prev.map((chat) =>
+      chat.id === selectedChat.id
+        ? {
+            ...chat,
+            last_message:
+              data.chatMessage.message_type === "image"
+                ? "📷 Image"
+                : data.chatMessage.message_type === "voice"
+                ? "🎤 Voice note"
+                : data.chatMessage.message_type === "file"
+                ? `📎 ${data.chatMessage.file_name || "File"}`
+                : data.chatMessage.message || "",
+            last_message_at: data.chatMessage.created_at,
+          }
+        : chat
+    )
+  );
+}
 
   setChats((prev) =>
   prev.map((chat) =>
@@ -1054,62 +1075,88 @@ async function handleFileUpload(file: File) {
 async function startVoiceRecording() {
   if (!selectedChat) return;
 
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  const recorder = new MediaRecorder(stream);
-  const chunks: Blob[] = [];
+  setError("");
 
-  recorder.ondataavailable = (event) => {
-    if (event.data.size > 0) chunks.push(event.data);
-  };
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    const chunks: Blob[] = [];
 
-  recorder.onstop = async () => {
-    const blob = new Blob(chunks, { type: "audio/webm" });
-    const file = new File([blob], `voice-${Date.now()}.webm`, {
-      type: "audio/webm",
-    });
+    recorder.ondataavailable = (event) => {
+      if (event.data.size > 0) chunks.push(event.data);
+    };
 
-    const formData = new FormData();
-    formData.append("chatId", selectedChat.id);
-    formData.append("file", file);
-    formData.append("messageType", "voice");
+    recorder.onstop = async () => {
+      try {
+        const blob = new Blob(chunks, { type: "audio/webm" });
 
-    const res = await fetch("/api/chat/upload", {
-      method: "POST",
-      body: formData,
-    });
+        const file = new File([blob], `voice-${Date.now()}.webm`, {
+          type: "audio/webm",
+        });
 
-    const data = await res.json();
+        const formData = new FormData();
+        formData.append("chatId", selectedChat.id);
+        formData.append("file", file);
+        formData.append("messageType", "voice");
 
-    if (res.ok) {
-      setMessages((prev) => [...prev, data.chatMessage]);
+        const res = await fetch("/api/chat/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat.id === selectedChat.id
-            ? {
-                ...chat,
-                last_message: "🎤 Voice note",
-                last_message_at: new Date().toISOString(),
-              }
-            : chat
-        )
-      );
-    } else {
-      setError(data.error || "Failed to send voice note.");
-    }
+        const data = await res.json();
 
-    stream.getTracks().forEach((track) => track.stop());
+        if (!res.ok) {
+          setError(data.error || "Failed to send voice note.");
+          return;
+        }
+
+        setError("");
+
+        if (data.chatMessage) {
+          setMessages((prev) => [...prev, data.chatMessage]);
+
+          setChats((prev) =>
+            prev.map((chat) =>
+              chat.id === selectedChat.id
+                ? {
+                    ...chat,
+                    last_message: "🎤 Voice note",
+                    last_message_at:
+                      data.chatMessage.created_at || new Date().toISOString(),
+                  }
+                : chat
+            )
+          );
+
+          await fetchMessages(selectedChat.id, false);
+          await fetchSidebarData();
+        }
+      } catch (uploadError) {
+        console.error("Voice upload error:", uploadError);
+        setError("Failed to send voice note.");
+      } finally {
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        setMediaRecorder(null);
+      }
+    };
+
+    recorder.start();
+    setMediaRecorder(recorder);
+    setRecording(true);
+  } catch (recordError) {
+    console.error("Voice recording error:", recordError);
+    setError("Microphone access was denied or recording failed.");
     setRecording(false);
     setMediaRecorder(null);
-  };
-
-  recorder.start();
-  setMediaRecorder(recorder);
-  setRecording(true);
+  }
 }
 
 function stopVoiceRecording() {
-  mediaRecorder?.stop();
+  if (!mediaRecorder) return;
+
+  mediaRecorder.stop();
 }
 
 const quickEmojis = [
