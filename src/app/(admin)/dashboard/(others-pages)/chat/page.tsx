@@ -1110,11 +1110,17 @@ async function startVoiceRecording() {
 
     recorder.onstop = async () => {
       try {
-        const blob = new Blob(chunks, { type: "audio/webm" });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : "audio/mp4";
 
-        const file = new File([blob], `voice-${Date.now()}.webm`, {
-          type: "audio/webm",
-        });
+      const extension = mimeType === "audio/webm" ? "webm" : "mp4";
+
+      const blob = new Blob(chunks, { type: mimeType });
+
+      const file = new File([blob], `voice-${Date.now()}.${extension}`, {
+        type: mimeType,
+      });
 
         const formData = new FormData();
         formData.append("chatId", selectedChat.id);
