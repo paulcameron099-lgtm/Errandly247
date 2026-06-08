@@ -8,7 +8,16 @@ import Link from "next/link";
 import { MdHexagon } from "react-icons/md";
 import { motion } from "framer-motion";
 
-const logistics = [
+type Logistics = {
+  id: string;
+  title: string;
+  desc: string;
+  icon: React.ReactNode;
+  image: string;
+  button: string;
+};
+
+const logistics: Logistics []  = [
   {
     id: "/service/home-maintenance",
     title: "Home & Maintenance",
@@ -101,7 +110,7 @@ export default function BusinessService() {
                   {logis.desc}
                 </p>
                 <p className="font-Euclid font-bold text-white border-b border-b-gray-700">
-                  {logis.buttton}
+                  {logis.button}
                 </p>
               </div>
             </Link>

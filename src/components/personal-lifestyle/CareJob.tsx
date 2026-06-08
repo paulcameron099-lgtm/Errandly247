@@ -22,7 +22,7 @@ export default function CareJob() {
           muted
           playsInline
           preload="none"
-          className="w-full h-[500px] object-cover z-[-1] rounded-2xl my-10"
+          className="w-full h-[500px] object-cover -z-1 rounded-2xl my-10"
         >
           <source src="/videos/senior.mp4" type="video/mp4" />
           Your browser does not support the video tag.

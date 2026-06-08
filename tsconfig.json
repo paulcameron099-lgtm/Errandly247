@@ -34,7 +34,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
-  ],
+, "src/components/servicePage/ServiceContent.tsx", "src/components/servicePage/ServiceHero.tsx", "src/components/servicePage/ServicePage.tsx"  ],
   "exclude": [
     "node_modules"
   ]

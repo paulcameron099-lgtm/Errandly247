@@ -1,5 +1,5 @@
 import React from "react";
-import HeaderLayout from "../../Layout/HeaderLayout";
+import HeaderLayout from "../../layout/HeaderLayout";
 import PricingCnt from "./PricingCnt";
 import Partner from "../sections/Partner";
 

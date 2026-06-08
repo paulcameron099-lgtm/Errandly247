@@ -1,10 +1,20 @@
-'use client'
-import React from "react";
+"use client";
+
+import React, { ReactNode } from "react";
 import Link from "next/link";
-import { MdMail } from "react-icons/md";
-import { MdLocationPin } from "react-icons/md";
+import { MdMail, MdLocationPin } from "react-icons/md";
 import { FaClock } from "react-icons/fa";
 import { motion } from "framer-motion";
+
+type JobInfoProps = {
+  title?: string;
+  work: string;
+  workIcon?: ReactNode;
+  location: string;
+  locationIcon?: ReactNode;
+  time: string;
+  timeIcon?: ReactNode;
+};
 
 export default function JobInfo({
   title = "Job Info",
@@ -13,8 +23,8 @@ export default function JobInfo({
   location,
   locationIcon = <MdLocationPin />,
   time,
-  timeIcon = <FaClock />
-}) {
+  timeIcon = <FaClock />,
+}: JobInfoProps) {
   return (
     <>
       <motion.div

@@ -3,16 +3,20 @@ import React, { useState } from "react";
 import { MdOutlineKeyboardArrowDown, MdKeyboardArrowUp } from "react-icons/md";
 import { motion } from "framer-motion";
 
+type FaqItem = {
+  question: string;
+  answer: string;
+};
+
 export default function FaqContent() {
   // Track only ONE open section, not multiple
-  const [openIndex, setOpenIndex] = useState(null);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  const toggleSection = (index) => {
-    // If clicking the already open one, close it; otherwise open the clicked one
-    setOpenIndex(prevIndex => (prevIndex === index ? null : index));
+  const toggleSection = (index: number) => {
+    setOpenIndex((prevIndex) => (prevIndex === index ? null : index));
   };
 
-  const reads = [
+  const reads: FaqItem[] = [
     {
       question: "What services do you offer?",
       answer:
