@@ -458,6 +458,71 @@ useEffect(() => {
   };
 }, [currentProfile?.id, chats]);
 
+useEffect(() => {
+  if (!selectedChat?.id) return;
+
+  const supabase = createClient();
+
+  const channel = supabase
+    .channel(`chat-messages-${selectedChat.id}-${Date.now()}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_messages",
+        filter: `chat_id=eq.${selectedChat.id}`,
+      },
+      async () => {
+        await fetchMessages(selectedChat.id, false);
+        await fetchSidebarData();
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_reactions",
+      },
+      async () => {
+        await fetchMessages(selectedChat.id, false);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [selectedChat?.id]);
+
+useEffect(() => {
+  if (!selectedChat?.id) return;
+
+  const supabase = createClient();
+
+  const channel = supabase
+    .channel(`live-chat-${selectedChat.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_messages",
+        filter: `chat_id=eq.${selectedChat.id}`,
+      },
+      async () => {
+        await fetchMessages(selectedChat.id, false);
+        await fetchSidebarData();
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [selectedChat?.id]);
+
 async function fetchSidebarData() {
   setLoading(true);
   setError("");
@@ -758,7 +823,10 @@ async function fetchMessages(chatId: string, showLoader = true) {
   setError("");
 
   try {
-    const res = await fetch(`/api/chat/messages?chatId=${chatId}`);
+    const res = await fetch(`/api/chat/messages?chatId=${chatId}`, {
+      cache: "no-store",
+    });
+
     const data = await res.json();
 
     if (!res.ok) {
@@ -767,6 +835,12 @@ async function fetchMessages(chatId: string, showLoader = true) {
     }
 
     setMessages(data.messages || []);
+
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId ? { ...chat, unread_count: 0 } : chat
+      )
+    );
   } catch (error) {
     console.error("Fetch messages error:", error);
     setError("Failed to load messages.");
@@ -1226,6 +1300,11 @@ function handleTypingChange(value: string) {
   setTypingTimeout(timeout);
 }
 
+const currentUserIsStaff =
+  currentProfile?.role === "admin" ||
+  currentProfile?.role === "manager" ||
+  currentProfile?.role === "supervisor";
+
   return (
     <div className="h-[calc(100vh-90px)] overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="relative h-full lg:grid lg:grid-cols-[360px_1fr]">
@@ -1565,6 +1644,11 @@ function handleTypingChange(value: string) {
                                 setActiveMessage(null);
                             }}
                             onReact={(emoji) => handleMessageAction(msg.id, "react", emoji)}
+                            canManageMessages={
+                              currentProfile?.role === "admin" ||
+                              currentProfile?.role === "manager" ||
+                              currentProfile?.role === "supervisor"
+                            }
                             />
                         </div>
                     );
@@ -2494,6 +2578,7 @@ function MessageBubble({
   message,
   isMine,
   isActive,
+  canManageMessages,
   onClick,
   onReply,
   onForward,
@@ -2507,6 +2592,7 @@ function MessageBubble({
   message: ChatMessage;
   isMine: boolean;
   isActive: boolean;
+  canManageMessages: boolean;
   onClick: () => void;
   onReply: () => void;
   onForward: () => void;
@@ -2596,7 +2682,7 @@ function MessageBubble({
               </span>
             </a>
           ) : (
-            <p className="whitespace-pre-wrap break-words">
+            <p className="whitespace-pre-wrap wrap-break-word">
               {message.message}
             </p>
           )}
@@ -2670,8 +2756,12 @@ function MessageBubble({
                     label={message.is_pinned ? "Unpin" : "Pin"}
                     onClick={onPin}
                 />
-                <SmallMenuAction label="Edit" onClick={onEdit} />
-                <SmallMenuAction label="Delete" onClick={onDelete} danger />
+                  {canManageMessages && (
+                    <>
+                      <SmallMenuAction label="Edit" onClick={onEdit} />
+                      <SmallMenuAction label="Delete" onClick={onDelete} danger />
+                    </>
+                  )}
                 </div>
             </div>
             )}
