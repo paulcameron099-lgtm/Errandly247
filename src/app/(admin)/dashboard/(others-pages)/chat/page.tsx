@@ -293,7 +293,7 @@ useEffect(() => {
   const supabase = createClient();
 
   const channel = supabase
-    .channel("sidebar-live-updates")
+    .channel(`sidebar-live-updates-${currentProfile.id}`)
     .on(
       "postgres_changes",
       {
@@ -301,41 +301,34 @@ useEffect(() => {
         schema: "public",
         table: "chat_messages",
       },
-      async (payload) => {
+      (payload) => {
         const newMessage = payload.new as ChatMessage;
 
-        const belongsToMySidebar = chats.some(
-          (chat) => chat.id === newMessage.chat_id
-        );
+        setChats((prev) => {
+          const belongsToMySidebar = prev.some(
+            (chat) => chat.id === newMessage.chat_id
+          );
 
-        if (!belongsToMySidebar) {
-          await fetchSidebarData();
-          return;
-        }
+          if (!belongsToMySidebar) {
+            fetchSidebarData();
+            return prev;
+          }
 
-        setChats((prev) =>
-          prev.map((chat) => {
+          return prev.map((chat) => {
             if (chat.id !== newMessage.chat_id) return chat;
 
             const isCurrentOpenChat = selectedChat?.id === chat.id;
 
             return {
               ...chat,
-              last_message:
-                newMessage.message_type === "image"
-                  ? "📷 Image"
-                  : newMessage.message_type === "voice"
-                  ? "🎤 Voice note"
-                  : newMessage.message_type === "file"
-                  ? `📎 ${newMessage.file_name || "File"}`
-                  : newMessage.message || "",
+              last_message: getLastMessageText(newMessage),
               last_message_at: newMessage.created_at,
               unread_count: isCurrentOpenChat
                 ? 0
                 : (chat.unread_count || 0) + 1,
             };
-          })
-        );
+          });
+        });
       }
     )
     .on(
@@ -345,11 +338,13 @@ useEffect(() => {
         schema: "public",
         table: "chats",
       },
-      async () => {
-        await fetchSidebarData();
+      () => {
+        fetchSidebarData();
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log("Sidebar realtime status:", status);
+    });
 
   return () => {
     supabase.removeChannel(channel);
