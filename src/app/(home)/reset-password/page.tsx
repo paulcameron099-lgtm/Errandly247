@@ -1,10 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<ResetPasswordLoading />}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
+}
+
+function ResetPasswordLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+      <p className="text-sm text-gray-600">Preparing reset page...</p>
+    </div>
+  );
+}
+
+function ResetPasswordForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -40,9 +56,7 @@ export default function ResetPasswordPage() {
     exchangeCode();
   }, [searchParams]);
 
-  const handleResetPassword = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  async function handleResetPassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     setError("");
@@ -84,26 +98,26 @@ export default function ResetPasswordPage() {
     }, 2000);
 
     setLoading(false);
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
+      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
+        <h1 className="mb-6 text-center text-2xl font-bold">
           Reset Password
         </h1>
 
-        {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
+        {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
 
         {success && (
-          <div className="mb-4 text-green-600 text-sm">{success}</div>
+          <div className="mb-4 text-sm text-green-600">{success}</div>
         )}
 
         <form onSubmit={handleResetPassword}>
           <input
             type="password"
             placeholder="New Password"
-            className="w-full border p-3 rounded-lg mb-4"
+            className="mb-4 w-full rounded-lg border p-3"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -111,7 +125,7 @@ export default function ResetPasswordPage() {
           <input
             type="password"
             placeholder="Confirm Password"
-            className="w-full border p-3 rounded-lg mb-4"
+            className="mb-4 w-full rounded-lg border p-3"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
@@ -119,7 +133,7 @@ export default function ResetPasswordPage() {
           <button
             type="submit"
             disabled={loading || !sessionReady}
-            className="w-full bg-black text-white py-3 rounded-lg disabled:opacity-60"
+            className="w-full rounded-lg bg-black py-3 text-white disabled:opacity-60"
           >
             {loading
               ? "Updating..."
