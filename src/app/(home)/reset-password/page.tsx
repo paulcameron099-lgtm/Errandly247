@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 
 export default function ResetPasswordPage() {
@@ -11,8 +11,34 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    async function exchangeCode() {
+      const code = searchParams.get("code");
+
+      if (!code) {
+        setError("Invalid or expired reset link. Please request a new one.");
+        return;
+      }
+
+      const supabase = createClient();
+
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      setSessionReady(true);
+    }
+
+    exchangeCode();
+  }, [searchParams]);
 
   const handleResetPassword = async (
     e: React.FormEvent<HTMLFormElement>
@@ -21,6 +47,11 @@ export default function ResetPasswordPage() {
 
     setError("");
     setSuccess("");
+
+    if (!sessionReady) {
+      setError("Reset session is not ready. Please open the reset link again.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -62,9 +93,7 @@ export default function ResetPasswordPage() {
           Reset Password
         </h1>
 
-        {error && (
-          <div className="mb-4 text-red-600 text-sm">{error}</div>
-        )}
+        {error && <div className="mb-4 text-red-600 text-sm">{error}</div>}
 
         {success && (
           <div className="mb-4 text-green-600 text-sm">{success}</div>
@@ -89,10 +118,14 @@ export default function ResetPasswordPage() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-3 rounded-lg"
+            disabled={loading || !sessionReady}
+            className="w-full bg-black text-white py-3 rounded-lg disabled:opacity-60"
           >
-            {loading ? "Updating..." : "Update Password"}
+            {loading
+              ? "Updating..."
+              : !sessionReady
+              ? "Preparing reset..."
+              : "Update Password"}
           </button>
         </form>
       </div>

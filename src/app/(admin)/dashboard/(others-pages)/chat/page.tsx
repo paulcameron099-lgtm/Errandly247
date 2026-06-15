@@ -200,31 +200,35 @@ useEffect(() => {
     .on(
       "postgres_changes",
       {
-        event: "INSERT",
+        event: "*",
         schema: "public",
         table: "chat_messages",
         filter: `chat_id=eq.${chatId}`,
       },
-      (payload) => {
-        const newMessage = payload.new as ChatMessage;
-
-        upsertMessage(newMessage);
-        updateSidebarLastMessage(newMessage);
+      async () => {
+        await fetchMessages(chatId, false);
       }
     )
     .on(
       "postgres_changes",
       {
-        event: "UPDATE",
+        event: "*",
         schema: "public",
-        table: "chat_messages",
-        filter: `chat_id=eq.${chatId}`,
+        table: "chat_message_reads",
       },
-      (payload) => {
-        const updatedMessage = payload.new as ChatMessage;
-
-        upsertMessage(updatedMessage);
-        updateSidebarLastMessage(updatedMessage);
+      async () => {
+        await fetchMessages(chatId, false);
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_reactions",
+      },
+      async () => {
+        await fetchMessages(chatId, false);
       }
     )
     .subscribe((status) => {

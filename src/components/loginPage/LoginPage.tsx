@@ -8,7 +8,7 @@ import Image from "next/image";
 import logoBlack from "../../../public/images/logoo.png";
 import Link from "next/link";
 
-type UserRole = "admin" | "manager" | "employee";
+type UserRole = "admin" | "manager" | "employee" | "supervisor";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -65,7 +65,7 @@ export default function Login() {
 
    const role = String(profile.role || "").trim().toLowerCase();
 
-    if (role === "admin" || role === "manager" || role === "employee") {
+    if (role === "admin" || role === "manager" || role === "employee" || role === "supervisor") {
       await supabase
         .from("profiles")
         .update({
