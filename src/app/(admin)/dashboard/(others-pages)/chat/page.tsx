@@ -214,17 +214,6 @@ useEffect(() => {
       {
         event: "*",
         schema: "public",
-        table: "chat_message_reads",
-      },
-      async () => {
-        await fetchMessages(chatId, false);
-      }
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
         table: "chat_reactions",
       },
       async () => {
@@ -766,7 +755,7 @@ function updateSidebarLastMessage(message: ChatMessage) {
 async function fetchMessages(chatId: string, showLoader = true) {
   if (showLoader) setMessagesLoading(true);
 
-  setError("");
+  if (showLoader) setError("");
 
   try {
     const res = await fetch(`/api/chat/messages?chatId=${chatId}`, {
@@ -776,7 +765,11 @@ async function fetchMessages(chatId: string, showLoader = true) {
     const data = await res.json();
 
     if (!res.ok) {
-      setError(data.error || "Failed to load messages.");
+      if (showLoader) {
+        setError(data.error || "Failed to load messages.");
+      } else {
+        console.error("Background fetch messages failed:", data.error);
+      }
       return;
     }
 
@@ -784,17 +777,15 @@ async function fetchMessages(chatId: string, showLoader = true) {
 
     setChats((prev) =>
       prev.map((chat) =>
-        chat.id === chatId
-          ? {
-              ...chat,
-              unread_count: 0,
-            }
-          : chat
+        chat.id === chatId ? { ...chat, unread_count: 0 } : chat
       )
     );
   } catch (error) {
     console.error("Fetch messages error:", error);
-    setError("Failed to load messages.");
+
+    if (showLoader) {
+      setError("Failed to load messages.");
+    }
   } finally {
     if (showLoader) setMessagesLoading(false);
   }

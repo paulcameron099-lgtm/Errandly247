@@ -76,7 +76,7 @@ export default function AttendancePage() {
 
     const role = String(userProfile.role || "").toLowerCase();
 
-    if (role === "admin" || role === "manager") {
+    if (role === "admin" || role === "manager" || role === "supervisor") {
       await fetchAdminAttendance();
     } else {
       await fetchEmployeeAttendance(user.id);
@@ -130,13 +130,34 @@ async function handleCheckIn() {
 
   const now = new Date();
 
-  const workStartTime = new Date();
-  workStartTime.setHours(9, 0, 0, 0);
+// USA Eastern Time (New York)
+// Employee can check in between 9:00 AM and 10:00 AM
 
-  const isLate = now > workStartTime;
+const easternTime = new Date(
+  now.toLocaleString("en-US", {
+    timeZone: "America/New_York",
+  })
+);
+
+const currentHour = easternTime.getHours();
+const currentMinute = easternTime.getMinutes();
+
+const currentMinutes = currentHour * 60 + currentMinute;
+
+const startMinutes = 9 * 60; // 9:00 AM
+const lateMinutesStart = 10 * 60; // 10:00 AM
+
+  // Before 9AM
+  if (currentMinutes < startMinutes) {
+    setError("Check-in opens at 9:00 AM (US Eastern Time).");
+    setActionLoading(false);
+    return;
+  }
+
+  const isLate = currentMinutes > lateMinutesStart;
 
   const lateMinutes = isLate
-    ? Math.floor((now.getTime() - workStartTime.getTime()) / 60000)
+    ? currentMinutes - lateMinutesStart
     : 0;
 
   const attendanceStatus = isLate ? "late" : "present";
