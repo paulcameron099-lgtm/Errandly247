@@ -21,7 +21,7 @@ export async function GET() {
 
   if (
     !currentProfile ||
-    (currentProfile.role !== "admin" && currentProfile.role !== "manager")
+    (currentProfile.role !== "admin" && currentProfile.role !== "manager" && currentProfile.role !== "supervisor")
   ) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }

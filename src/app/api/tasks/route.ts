@@ -82,7 +82,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
-  if (profile.role !== "admin" && profile.role !== "manager") {
+  if (profile.role !== "admin" && profile.role !== "manager" && profile.role !== "supervisor") {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 

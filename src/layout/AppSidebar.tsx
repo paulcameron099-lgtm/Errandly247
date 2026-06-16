@@ -26,7 +26,7 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-type Role = "admin" | "manager" | "employee";
+type Role = "admin" | "manager" | "employee" | "supervisor";
 
 const getNavItems = (role: Role): NavItem[] => {
   const items: NavItem[] = [
@@ -52,14 +52,14 @@ const getNavItems = (role: Role): NavItem[] => {
     },
   ];
 
-  if (role === "admin" || role === "manager") {
+  if (role === "admin" || role === "manager" || role === "supervisor") {
     items.push({
       icon: <PieChartIcon />,
       name: "Manage Employees",
       path: "/dashboard/manage-employees",
     });
   }
-  if (role === "admin" || role === "manager") {
+  if (role === "admin" || role === "manager" || role === "supervisor") {
     items.push({
       icon: <UserCircleIcon />,
       name: "Create Employee",
@@ -67,7 +67,7 @@ const getNavItems = (role: Role): NavItem[] => {
     });
   }
 
-  if (role === "admin" || role === "manager") {
+  if (role === "admin" || role === "manager" || role === "supervisor") {
     items.push({
       icon: <FaTruck />,
       name: "Create Tracking",
