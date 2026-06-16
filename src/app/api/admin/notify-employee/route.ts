@@ -96,9 +96,9 @@ export async function POST(req: Request) {
                   </p>
                 </div>
 
-                <p style="margin:0; font-size:15px;">
+                <p style="margin:0; font-size:15px; margin-bottom:5px;">
                     Kindly log in to your dashboard to review the message and respond as needed.
-                  </p>
+                </p>
 
                 <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chat"
                   style="display:inline-block; background:#000000; color:#ffffff; padding:14px 22px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">
