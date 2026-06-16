@@ -113,7 +113,7 @@ export async function POST(req: Request) {
     try {
       await sendMail({
           to: employee.email,
-          subject: `You Have Been Added to ${name}`,
+          subject: `You Have Been Added to Group`,
           html: `
             <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;">
               <div style="max-width:620px; margin:auto; background:#ffffff; border-radius:14px; overflow:hidden;">
