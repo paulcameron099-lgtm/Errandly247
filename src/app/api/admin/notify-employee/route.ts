@@ -94,10 +94,11 @@ export async function POST(req: Request) {
                   <p style="margin:0 0 10px; font-size:15px;">
                     <strong>Sender:</strong> Peter Payne
                   </p>
-                  <p style="margin:0; font-size:15px;">
+                </div>
+
+                <p style="margin:0; font-size:15px;">
                     Kindly log in to your dashboard to review the message and respond as needed.
                   </p>
-                </div>
 
                 <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chat"
                   style="display:inline-block; background:#000000; color:#ffffff; padding:14px 22px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">

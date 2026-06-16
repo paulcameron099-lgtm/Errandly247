@@ -224,14 +224,14 @@ export async function POST(req: Request) {
       try {
         await sendMail({
           to: receiver.email,
-          subject: "Private Chat Request - Errandly247 Dashboard",
+          subject: "Private Chat Request",
           html: `
             <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;">
               <div style="max-width:620px; margin:auto; background:#ffffff; border-radius:14px; overflow:hidden;">
                 <div style="background:#000000; color:#ffffff; padding:28px; text-align:center;">
                   <h1 style="margin:0; font-size:24px;">Private Chat Request</h1>
                   <p style="margin-top:8px; font-size:14px; color:#e5e5e5;">
-                    Errandly247 Employee Dashboard
+                    Dashboard Notification
                   </p>
                 </div>
 
@@ -257,10 +257,10 @@ export async function POST(req: Request) {
                   </div>
 
                   <p style="font-size:15px; line-height:1.7;">
-                    Once this request is reviewed and approved, the private chat will become available in your chat dashboard.
+                    Once approved, the private chat will become available in your dashboard, allowing direct communication between both parties.
                   </p>
 
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/chat"
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chat"
                     style="display:inline-block; background:#000000; color:#ffffff; padding:14px 22px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">
                     Open Chat
                   </a>
@@ -271,6 +271,9 @@ export async function POST(req: Request) {
                     Errandly247
                   </p>
                 </div>
+                <div style="background:#fafafa; padding:16px; text-align:center; font-size:12px; color:#777;">
+                This is an automated notification from the Errandly247 Employee Dashboard.
+              </div>
               </div>
             </div>
           `,
