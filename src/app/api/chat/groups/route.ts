@@ -120,7 +120,7 @@ export async function POST(req: Request) {
                 <div style="background:#000000; color:#ffffff; padding:28px; text-align:center;">
                   <h1 style="margin:0; font-size:24px;">You Have Been Added to a Group Chat</h1>
                   <p style="margin-top:8px; font-size:14px; color:#e5e5e5;">
-                    Errandly247 Employee Dashboard
+                    Dashboard notification
                   </p>
                 </div>
 
@@ -130,8 +130,7 @@ export async function POST(req: Request) {
                   </p>
 
                   <p style="font-size:15px; line-height:1.7;">
-                    You have been added to a company group chat for communication, updates, and meeting discussions.
-                    Please log in to your dashboard to view the group, follow updates, and participate when required.
+                    You have been added to Group, a discussion group created to review and discuss the progress of ongoing tasks with team members.
                   </p>
 
                   <div style="background:#f8f8f8; border:1px solid #eeeeee; padding:18px; border-radius:10px; margin:24px 0;">
@@ -139,14 +138,18 @@ export async function POST(req: Request) {
                       <strong>Group Name:</strong> ${name}
                     </p>
                     <p style="margin:0 0 10px; font-size:15px;">
-                      <strong>Dashboard Section:</strong> Chat
+                      <strong>Section:</strong> Chat
                     </p>
                     <p style="margin:0; font-size:15px;">
-                      <strong>Action Required:</strong> Log in and check the group chat
+                      <strong>Purpose:</strong> Task Progress Review & Discussion
                     </p>
                   </div>
 
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/chat"
+                  <p style="font-size:15px; line-height:1.7;">
+                    You are advised to log in a few minutes before the scheduled discussion and be prepared to provide an update on your assigned tasks. Your active participation is important to help keep the team aligned and ensure ongoing objectives remain on track.
+                  </p>
+
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/chat"
                     style="display:inline-block; background:#000000; color:#ffffff; padding:14px 22px; border-radius:8px; text-decoration:none; font-weight:bold; font-size:14px;">
                     Open Chat
                   </a>
@@ -159,7 +162,7 @@ export async function POST(req: Request) {
                 </div>
 
                 <div style="background:#fafafa; padding:16px; text-align:center; font-size:12px; color:#777;">
-                  This is an automated company notification.
+                  This is an automated notification from the Errandly247 Employee Dashboard.
                 </div>
               </div>
             </div>

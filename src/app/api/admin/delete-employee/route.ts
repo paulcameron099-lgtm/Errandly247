@@ -28,7 +28,7 @@ export async function DELETE(req: Request) {
     .eq("id", user.id)
     .single();
 
-  if (!currentProfile || currentProfile.role !== "admin") {
+  if (!currentProfile || currentProfile.role !== "admin" || currentProfile.role !== "manager" || currentProfile.role !== "supervisor") {
     return NextResponse.json(
       { error: "Only admin can delete employee accounts." },
       { status: 403 }

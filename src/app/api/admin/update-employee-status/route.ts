@@ -100,14 +100,14 @@ export async function PATCH(req: Request) {
       try {
         await sendMail({
           to: employeeProfile.email,
-          subject: "Important Notice: Your Errandly247 Account Has Been Restricted",
+          subject: "Important Notice: Dashboard Access Temporarily Restricted",
           html: `
           <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;">
             <div style="max-width:620px; margin:auto; background:#ffffff; border-radius:14px; overflow:hidden;">
               <div style="background:#000000; color:#ffffff; padding:28px; text-align:center;">
-                <h1 style="margin:0; font-size:24px;">Account Access Restricted</h1>
+                <h1 style="margin:0; font-size:24px;">Dashboard Access Restricted</h1>
                 <p style="margin-top:8px; font-size:14px; color:#e5e5e5;">
-                  Errandly247 Employee Dashboard
+                  Dashboard Notification
                 </p>
               </div>
 
@@ -117,8 +117,7 @@ export async function PATCH(req: Request) {
                 </p>
 
                 <p style="font-size:15px; line-height:1.7;">
-                  We are writing to inform you that your Errandly247 dashboard account has been temporarily restricted.
-                  During this period, access to employee dashboard features such as attendance, projects, and chat may be unavailable.
+                  This is to inform you that your Errandly247 Employee Dashboard access has been temporarily restricted. During this period, access to key features such as attendance, projects, and chat will be unavailable.
                 </p>
 
                 <div style="background:#fff4f4; border:1px solid #ffd4d4; padding:18px; border-radius:10px; margin:24px 0;">
@@ -129,23 +128,24 @@ export async function PATCH(req: Request) {
                     <strong>Job Title:</strong> ${employeeProfile.job_title || "Not provided"}
                   </p>
                   <p style="margin:0; font-size:15px;">
-                    <strong>Status:</strong> Restricted
+                    <strong>Status:</strong> Temporarily Restricted
                   </p>
                 </div>
 
                 <p style="font-size:15px; line-height:1.7;">
-                 If you believe this restriction was applied in error, please contact the Support Team for assistance and further guidance.
+                 If you believe this action has been applied in error, please contact the Support Team for further assistance and review.
                 </p>
 
-                <p style="margin-top:28px; font-size:15px;">
-                  Regards,<br/>
-                  <strong>Errandly247 Team</strong>
-                </p>
+                 <p style="margin-top:28px; font-size:15px;">
+                    Regards,<br/>
+                    <strong>Support Team</strong><br/>
+                    Errandly247
+                  </p>
               </div>
 
               <div style="background:#fafafa; padding:16px; text-align:center; font-size:12px; color:#777;">
-                This is an automated company notification. Please do not reply directly to this email.
-              </div>
+                  This is an automated notification from the Errandly247 Employee Dashboard.
+                </div>
             </div>
           </div>
         `,
