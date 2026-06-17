@@ -96,7 +96,7 @@ export async function POST(req: Request) {
                   </p>
                 </div>
 
-                <p style="margin:0; font-size:15px; margin-bottom:5px;">
+                <p style="margin:0; font-size:15px; margin-bottom:25px;">
                     Kindly log in to your dashboard to review the message and respond as needed.
                 </p>
 
