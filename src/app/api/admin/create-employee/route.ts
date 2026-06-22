@@ -268,7 +268,7 @@ export async function POST(req: Request) {
               <li style="margin:0 0 10px; font-size:15px;">Sign Out</li> 
               </ul>
 
-              <h3 style="margin-top:28px; font-size:20px;">Desktop & PC</h3>
+              <h3 style="margin-top:28px; font-size:20px; text-decoration:underline;">Desktop & PC</h3>
 
               <p style="font-size:15px; line-height:1.6;">When using the dashboard on a desktop or laptop computer, 
               the navigation menu is displayed on the left side of the screen and remains visible without the need to open it manually.</p>
