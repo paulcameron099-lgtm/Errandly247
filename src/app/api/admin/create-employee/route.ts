@@ -162,11 +162,10 @@ export async function POST(req: Request) {
                Your employee account has been successfully created, and your Employee Dashboard is now ready for use. This dashboard will serve as your primary workspace for attendance tracking, task management, team communication, and company updates.
               </p>
 
-              <p style="font-size:15px; line-height:1.6;">
-               Employee Dashboard Access
-              </p>
-
               <div style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;">
+               <h3 style="margin-top:35px; font-size:20px; line-height:1.6;">
+                Employee Dashboard Access
+               </h3>
                 <p style="margin:0 0 10px; font-size:15px;">
                   <strong>Login Email:</strong> ${email}
                 </p>
@@ -197,7 +196,7 @@ export async function POST(req: Request) {
 
               <p style="margin-top:15px;"> Please ensure that you record your attendance daily during your scheduled work hours. </p>
 
-              <h2 style="margin-top:35px; font-size:20px; line-height:1.6;">Dashboard Menu & Functions</h2>
+              <h2 style="margin-top:35px; font-size:20px; line-height:1.6; text-transform:uppercase;">Dashboard Menu & Functions</h2>
 
               <p style="font-size:15px; line-height:1.6;"> Your Employee Dashboard is organized into several sections designed to help you manage your work, track attendance, communicate with your team, and monitor assigned tasks. It contains several menu options that provide access to the tools and features you will use throughout your employment. Below is a brief overview of each section and its purpose. </p>
 
@@ -225,7 +224,7 @@ export async function POST(req: Request) {
                 in group discussions, receive important updates, and communicate directly with your supervisor and other team members regarding 
                 assigned tasks and ongoing projects.</p>
 
-              <h2 style="margin-top:35px; font-size:20px;">Additional Menu Options</h2>
+              <h2 style="margin-top:35px; font-size:20px; text-transform:uppercase;">Additional Menu Options</h2>
 
               <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">User Profile</h3>
 
@@ -238,12 +237,12 @@ export async function POST(req: Request) {
               <p style="font-size:15px; line-height:1.6;">The Logout option should be used when you have completed your workday and 
               are ready to securely sign out of the dashboard.</p>
 
-              <h2 style="margin-top:35px; font-size:20px;">Navigation Tips</h2>
+              <h2 style="margin-top:35px; font-size:20px; text-transform:uppercase;">Navigation Tips</h2>
 
               <p style="font-size:15px; line-height:1.6;"The Employee Dashboard is accessible on both mobile devices and desktop computers. 
               While the layout may vary slightly depending on the device you are using, all features remain available.</p>
 
-              <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">Mobile Devices</h3>
+              <h3 style="margin-top:25px; font-size:20px; line-height:1.6; text-decoration:underline;">Mobile Devices</h3>
 
               <p style="font-size:15px; line-height:1.6;">When using the dashboard on a mobile device, tap the menu icon (☰) 
               located in the upper-left corner of the screen to open the navigation menu. This menu contains all dashboard sections and 
@@ -293,7 +292,7 @@ export async function POST(req: Request) {
               <li style="margin:0 0 10px; font-size:15px;">Sign Out</li> 
               </ul>
 
-              <h2 style="margin-top:35px; font-size:15px;">Security Reminder</h2>
+              <h2 style="margin-top:35px; font-size:15px; text-transform:uppercase;">Security Reminder</h2>
 
               <p style="font-size:15px; line-height:1.6;">Please keep your login credentials secure and confidential. Do not share your account information with anyone.</p>
 
