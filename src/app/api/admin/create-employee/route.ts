@@ -199,94 +199,109 @@ export async function POST(req: Request) {
 
               <h2 style="margin-top:35px; font-size:20px; line-height:1.6;">Dashboard Menu & Functions</h2>
 
-              <p style="font-size:15px; line-height:1.6;"> Your Employee Dashboard contains several menu options designed to help you manage your work, track attendance, communicate with your team, and monitor assigned tasks. </p>
+              <p style="font-size:15px; line-height:1.6;"> Your Employee Dashboard is organized into several sections designed to help you manage your work, track attendance, communicate with your team, and monitor assigned tasks. It contains several menu options that provide access to the tools and features you will use throughout your employment. Below is a brief overview of each section and its purpose. </p>
 
               <h3 style="font-size:20px; line-height:1.6;">1. Dashboard</h3>
 
-              <p style="font-size:15px; line-height:1.6;"> The Dashboard provides a summary of your account activity, including attendance records, assigned projects, chat activity, and profile information. </p>
+              <p style="font-size:15px; line-height:1.6;">The Dashboard provides a summary of your account activity, including attendance records, assigned projects, chat activity, and profile information. From this page, you can quickly navigate to any section of the system.</p>
  
               <h3 style="font-size:20px; line-height:1.6;">2. Attendance</h3>
 
-              <p style="font-size:15px; line-height:1.6;"> The Attendance menu is used to record your daily work hours. </p>
+              <p style="font-size:15px; line-height:1.6;">The Attendance menu is used to record your daily work hours.
+                At the start of your shift, you are required to access the Attendance section and click Check In. This step is essential because the system only begins tracking your work hours after you have checked in. Work hours that are not recorded by the system may not be included in payroll calculations.
+                At the end of your shift, return to the Attendance section and click Sign Out to complete your daily attendance record.
+                You may also use this section to review your attendance history and previously recorded work hours.</p>
 
-              <ul style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;"> 
-              <li style="margin:0 0 10px; font-size:15px;">At the start of your shift, click <strong>Check In</strong>.</li> 
-              <li style="margin:0 0 10px; font-size:15px;">The system only tracks work hours after check-in.</li> 
-              <li style="margin:0 0 10px; font-size:15px;">At the end of your shift, click <strong>Check Out</strong>.</li> 
-              <li style="margin:0 0 10px; font-size:15px;">You can also review your attendance history from this section.</li> 
-              </ul>
+                <h3 style="font-size:20px; line-height:1.6;">3. Projects</h3>
 
-              <h3 style="margin-top:35px; font-size:20px; line-height:1.6;">3. Projects</h3>
+                <p style="font-size:15px; line-height:1.6;">The Projects menu allows you to view assigned tasks, accept new assignments, monitor progress, and manage your workload.
+                When a new task is assigned, you will receive a notification. You should proceed to the Projects section, review the 
+                task details, and accept the assignment. After accepting the task, please visit the Chat section to communicate with 
+                your supervisor regarding instructions, updates, and next steps.</p>
 
-              <p style="font-size:15px; line-height:1.6;"> The Projects menu allows you to view assigned tasks, accept new assignments, monitor progress, and manage your workload. </p>
+                <h3 style="font-size:20px; line-height:1.6;">4. Chats</h3>
 
-              <p style="font-size:15px; line-height:1.6;"> When a new task is assigned, you will receive a notification. Review the task details, accept the assignment, and communicate with your supervisor through the Chat section. </p>
-
-              <h3 style="margin-top:35px; font-size:20px; line-height:1.6;">4. Chat</h3>
-
-              <p style="font-size:15px; line-height:1.6;"> The Chat menu is used for work-related communication. You can participate in group discussions, receive important updates, and communicate directly with supervisors and team members. </p>
+                <p style="font-size:15px; line-height:1.6;">The Chat menu is used for work-related communication. Here you can participate 
+                in group discussions, receive important updates, and communicate directly with your supervisor and other team members regarding 
+                assigned tasks and ongoing projects.</p>
 
               <h2 style="margin-top:35px; font-size:20px;">Additional Menu Options</h2>
 
               <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">User Profile</h3>
 
-              <p style="font-size:15px; line-height:1.6;"> Review and update your personal information. Please ensure your address and contact details remain accurate, as assignments may be based on your location. </p>
-
-              <p style="font-size:15px; line-height:1.6;"> You may also change your password from this section at any time. </p>
+              <p style="font-size:15px; line-height:1.6;">The User Profile section allows you to review and update your personal information.
+               Please ensure your address and contact details are accurate and up to date, as assignments may be based on your location. 
+               </p>
 
               <h3 style="margin-top:35px; font-size:20px;">Logout</h3>
 
-              <p style="font-size:15px; line-height:1.6;"> Use the Logout option when you have completed your workday and wish to securely sign out of the dashboard. </p>
+              <p style="font-size:15px; line-height:1.6;">The Logout option should be used when you have completed your workday and 
+              are ready to securely sign out of the dashboard.</p>
 
               <h2 style="margin-top:35px; font-size:20px;">Navigation Tips</h2>
 
+              <p style="font-size:15px; line-height:1.6;"The Employee Dashboard is accessible on both mobile devices and desktop computers. 
+              While the layout may vary slightly depending on the device you are using, all features remain available.</p>
+
               <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">Mobile Devices</h3>
 
-              <p style="font-size:15px; line-height:1.6;"> Tap the menu icon (☰) in the upper-left corner of the screen to access all dashboard sections. </p>
+              <p style="font-size:15px; line-height:1.6;">When using the dashboard on a mobile device, tap the menu icon (☰) 
+              located in the upper-left corner of the screen to open the navigation menu. This menu contains all dashboard sections and 
+              functions.</p>
 
-              <p style="font-size:15px; line-height:1.6;">The options menu (...) in the upper-right corner provides access to:</p>
+              <p style="font-size:15px; line-height:1.6;">In the upper-right corner of the screen, you will find the options menu (…). 
+              Selecting this button will open a dropdown menu containing:</p>
 
-              <ul style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;"> 
-              <li style="margin:0 0 10px; font-size:15px;">☀️ Theme Toggle</li> 
-              <li style="margin:0 0 10px; font-size:15px;">🔔 Notifications</li> 
-              <li style="margin:0 0 10px; font-size:15px;">Profile Menu</li> 
-              </ul>
+              <div style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;"> 
+              <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">☀️ Theme Toggle</h3> 
+              <p style="font-size:15px; line-height:1.6;">Switch between light mode and dark mode based on your preference.</p>
 
-              <p style="margin-top:28px; font-size:20px;">Profile Menu options:</p>
+              <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">🔔 Notifications</h3> 
+              <p style="font-size:15px; line-height:1.6;">View important alerts, task assignments, messages, and company updates.</p> 
+              </div>
+
+              <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">Profile Menu</h3>
+
+              <p style="font-size:15px; line-height:1.6;">Select your profile to open a dropdown menu containing:</p>
 
               <ul style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;"> 
               <li style="margin:0 0 10px; font-size:15px;">Edit Profile</li> 
               <li style="margin:0 0 10px; font-size:15px;">Sign Out</li> 
               </ul>
 
-              <h3 style="margin-top:28px; font-size:20px;">Desktop & Laptop Computers</h3>
+              <h3 style="margin-top:28px; font-size:20px;">Desktop & PC</h3>
 
-              <p style="font-size:15px; line-height:1.6;"> The navigation menu is permanently displayed on the left side of the screen. </p>
+              <p style="font-size:15px; line-height:1.6;">When using the dashboard on a desktop or laptop computer, 
+              the navigation menu is displayed on the left side of the screen and remains visible without the need to open it manually.</p>
 
-              <p style="font-size:15px; line-height:1.6;">Top navigation options include:</p>
+              <p style="font-size:15px; line-height:1.6;">At the top of the page, you will find:</p>
 
-              <ul style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;"> 
-              <li style="margin:0 0 10px; font-size:15px;">☀️ Theme Toggle</li> 
-              <li style="margin:0 0 10px; font-size:15px;">🔔 Notifications</li> 
-              <li style="margin:0 0 10px; font-size:15px;">Profile Menu</li> 
-              </ul>
+              <div style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;"> 
+              <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">☀️ Theme Toggle</h3> 
+              <p style="font-size:15px; line-height:1.6;">Switch between light mode and dark mode.</p>
 
-              <p style="margin-top:28px; font-size:15px;">Profile Menu options:</p>
+              <h3 style="margin-top:25px; font-size:20px; line-height:1.6;">🔔 Notifications</h3> 
+              <p style="font-size:15px; line-height:1.6;">Access task notifications, messages, reminders, and company announcements.</p> 
+              </div>
 
-              <ul style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee;"> 
+              <h3 style="margin-top:28px; font-size:20px;">Profile Menu</h3>
+
+              <p style="font-size:15px; line-height:1.6;">Select your profile to open a dropdown menu where you can:</p>
+
+              <ul style="background:#f8f8f8; padding:18px; border-radius:10px; margin:24px 0; border:1px solid #eeeeee; padding-left:4px"> 
               <li style="margin:0 0 10px; font-size:15px;">Edit Profile</li> 
               <li style="margin:0 0 10px; font-size:15px;">Sign Out</li> 
               </ul>
 
               <h2 style="margin-top:35px; font-size:15px;">Security Reminder</h2>
 
-              <p style="font-size:15px; line-height:1.6;"> Please keep your login credentials secure and confidential. Do not share your account information with anyone. </p>
+              <p style="font-size:15px; line-height:1.6;">Please keep your login credentials secure and confidential. Do not share your account information with anyone.</p>
 
-              <p style="font-size:15px; line-height:1.6;"> If you experience any issues accessing or navigating the dashboard, please contact the support team for assistance. </p>
+              <p style="font-size:15px; line-height:1.6;">If you experience any issues accessing or navigating the dashboard, please contact the support team for assistance.</p>
 
-              <p style="font-size:15px; line-height:1.6;"> We are committed to making your onboarding experience smooth and successful. Should you have any questions, our team is here to support you. </p>
+              <p style="font-size:15px; line-height:1.6;">We are committed to making your onboarding experience smooth and successful. Should you have any questions, our team is here to support you. </p>
 
-              <p style="font-size:15px; line-height:1.6;"> Welcome aboard, and we wish you great success with Errandly247. </p>
+              <p style="font-size:15px; line-height:1.6;">Welcome aboard, and we wish you great success with Errandly247.</p>
 
               <p style="margin-top:28px; font-size:15px;">
                 Warm regards,<br/>
