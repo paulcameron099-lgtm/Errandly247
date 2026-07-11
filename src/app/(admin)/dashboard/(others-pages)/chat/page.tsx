@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase";
 
 type UserProfile = {
@@ -121,6 +121,7 @@ const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
 const [isStaff, setIsStaff] = useState(false);
 
 const [chats, setChats] = useState<Chat[]>([]);
+const chatsRef = useRef<Chat[]>([]);
 const [employees, setEmployees] = useState<UserProfile[]>([]);
 
 const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
@@ -172,6 +173,14 @@ const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
 const [pinnedMessage, setPinnedMessage] = useState<ChatMessage | null>(null);
 const [forwardTargetChatId, setForwardTargetChatId] = useState("");
 const [sidebarTyping, setSidebarTyping] = useState<Record<string, string>>({});
+const [showRenameGroupModal, setShowRenameGroupModal] = useState(false);
+const [groupNameInput, setGroupNameInput] = useState("");
+const [renamingGroup, setRenamingGroup] = useState(false);
+
+useEffect(() => {
+  chatsRef.current = chats;
+}, [chats]);
+
 
 useEffect(() => {
   fetchSidebarData();
@@ -232,48 +241,68 @@ useEffect(() => {
 useEffect(() => {
   if (!selectedChat?.id || !currentProfile?.id) return;
 
+  const chatId = selectedChat.id;
+  const currentUserId = currentProfile.id;
   const supabase = createClient();
 
+  async function loadTypingUsers() {
+    const { data: typingRows, error: typingError } = await supabase
+      .from("chat_typing_status")
+      .select("user_id,is_typing,updated_at")
+      .eq("chat_id", chatId)
+      .neq("user_id", currentUserId)
+      .eq("is_typing", true);
+
+    if (typingError) {
+      console.error("Load typing users error:", typingError);
+      setTypingUsers([]);
+      return;
+    }
+
+    const names = await Promise.all(
+      (typingRows || []).map(async (item) => {
+        try {
+          const res = await fetch(`/api/chat/profile-name/${item.user_id}`, {
+            cache: "no-store",
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            console.error("Load typing profile failed:", data.error);
+            return "Someone";
+          }
+
+          return data.profile?.full_name?.trim() || "Someone";
+        } catch (error) {
+          console.error("Typing user name request error:", error);
+          return "Someone";
+        }
+      })
+    );
+
+    setTypingUsers(names);
+  }
+
+  loadTypingUsers();
+
   const channel = supabase
-    .channel(`typing-${selectedChat.id}`)
+    .channel(`typing-${chatId}-${currentUserId}`)
     .on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "chat_typing_status",
-        filter: `chat_id=eq.${selectedChat.id}`,
+        filter: `chat_id=eq.${chatId}`,
       },
       async () => {
-        const { data } = await supabase
-          .from("chat_typing_status")
-          .select(
-            `
-            user_id,
-            is_typing,
-            updated_at,
-            profiles (
-              full_name
-            )
-          `
-          )
-          .eq("chat_id", selectedChat.id)
-          .neq("user_id", currentProfile.id)
-          .eq("is_typing", true);
-
-        const names =
-          data?.map((item) => {
-            const profile = Array.isArray(item.profiles)
-              ? item.profiles[0]
-              : item.profiles;
-
-            return profile?.full_name || "Someone";
-          }) || [];
-
-        setTypingUsers(names);
+        await loadTypingUsers();
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log("Selected chat typing status:", status);
+    });
 
   return () => {
     supabase.removeChannel(channel);
@@ -331,9 +360,43 @@ useEffect(() => {
         schema: "public",
         table: "chats",
       },
-      () => {
-        fetchSidebarData();
-      }
+      async (payload) => {
+  const updatedChat = payload.new as {
+    id: string;
+    name: string | null;
+    updated_at: string;
+  };
+
+  setChats((prev) =>
+    prev.map((chat) =>
+      chat.id === updatedChat.id
+        ? {
+            ...chat,
+            name: updatedChat.name,
+            display_name:
+              chat.type === "group"
+                ? updatedChat.name || "Group Chat"
+                : chat.display_name,
+          }
+        : chat
+    )
+  );
+
+  setSelectedChat?.((prev) =>
+    prev?.id === updatedChat.id
+      ? {
+          ...prev,
+          name: updatedChat.name,
+          display_name:
+            prev.type === "group"
+              ? updatedChat.name || "Group Chat"
+              : prev.display_name,
+        }
+      : prev
+  );
+
+  await fetchSidebarData();
+}
     )
     .subscribe((status) => {
       console.log("Sidebar realtime status:", status);
@@ -347,10 +410,11 @@ useEffect(() => {
 useEffect(() => {
   if (!currentProfile?.id) return;
 
+  const currentUserId = currentProfile.id;
   const supabase = createClient();
 
   const channel = supabase
-    .channel("sidebar-typing-status")
+    .channel(`sidebar-typing-status-${currentUserId}`)
     .on(
       "postgres_changes",
       {
@@ -359,64 +423,82 @@ useEffect(() => {
         table: "chat_typing_status",
       },
       async (payload) => {
-        const row = payload.new as {
-          chat_id: string;
-          user_id: string;
-          is_typing: boolean;
-          updated_at: string;
+        const row = (payload.new || payload.old) as {
+          chat_id?: string;
+          user_id?: string;
+          is_typing?: boolean;
+          updated_at?: string;
         };
 
-        if (!row?.chat_id || row.user_id === currentProfile.id) return;
+        if (!row?.chat_id || !row?.user_id) return;
 
-        const chatExists = chats.some((chat) => chat.id === row.chat_id);
+        // Do not show the logged-in user's own typing status.
+        if (row.user_id === currentUserId) return;
+
+        const chatExists = chatsRef.current.some(
+          (chat) => chat.id === row.chat_id
+        );
+
+        // Ignore typing events from chats the user does not belong to.
         if (!chatExists) return;
 
         if (!row.is_typing) {
           setSidebarTyping((prev) => {
             const copy = { ...prev };
-            delete copy[row.chat_id];
+            delete copy[row.chat_id as string];
             return copy;
           });
+
           return;
         }
 
-      let typingName = "Someone";
+        let typingName = "Someone";
 
-      const chat = chats.find((item) => item.id === row.chat_id);
+        try {
+          const profileRes = await fetch(
+            `/api/chat/profile-name/${row.user_id}`,
+            {
+              cache: "no-store",
+            }
+          );
 
-      if (chat?.type === "private" && chat.other_user?.id === row.user_id) {
-        typingName = chat.other_user.full_name || "Someone";
-      } else {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", row.user_id)
-          .maybeSingle();
+          const profileData = await profileRes.json();
 
-        typingName = profile?.full_name || "Someone";
-      }
+          if (profileRes.ok) {
+            typingName =
+              profileData.profile?.full_name?.trim() || "Someone";
+          } else {
+            console.error(
+              "Failed to load typing user name:",
+              profileData.error
+            );
+          }
+        } catch (error) {
+          console.error("Typing profile request failed:", error);
+        }
 
-      setSidebarTyping((prev) => ({
-        ...prev,
-        [row.chat_id]: `${typingName} is typing...`,
-      }));
+        setSidebarTyping((prev) => ({
+          ...prev,
+          [row.chat_id as string]: `${typingName} is typing...`,
+        }));
 
-        setTimeout(() => {
+        window.setTimeout(() => {
           setSidebarTyping((prev) => {
             const copy = { ...prev };
-            delete copy[row.chat_id];
+            delete copy[row.chat_id as string];
             return copy;
           });
         }, 2500);
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log("Sidebar typing realtime status:", status);
+    });
 
   return () => {
     supabase.removeChannel(channel);
   };
 }, [currentProfile?.id]);
-
 
 async function fetchSidebarData() {
   setLoading(true);
@@ -1253,6 +1335,73 @@ const currentUserIsStaff =
   currentProfile?.role === "manager" ||
   currentProfile?.role === "supervisor";
 
+  async function handleRenameGroup(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+
+  if (!selectedChat?.id || selectedChat.type !== "group") return;
+
+  const cleanName = groupNameInput.trim();
+
+  if (!cleanName) {
+    setError("Group name is required.");
+    return;
+  }
+
+  setRenamingGroup(true);
+  setError("");
+  setSuccess("");
+
+  try {
+    const res = await fetch(`/api/chat/groups/${selectedChat.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: cleanName,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || "Failed to rename group.");
+      return;
+    }
+
+setChats((prev) =>
+  prev.map((chat) =>
+    chat.id === selectedChat.id
+      ? {
+          ...chat,
+          name: data.group.name,
+          display_name: data.group.name,
+        }
+      : chat
+  )
+);
+
+setSelectedChat((prev) =>
+  prev
+    ? {
+        ...prev,
+        name: data.group.name,
+        display_name: data.group.name,
+      }
+    : prev
+);
+
+setSuccess("Group name updated successfully.");
+setShowRenameGroupModal(false);
+setGroupNameInput("");
+  } catch (error) {
+    console.error("Rename group error:", error);
+    setError("Failed to rename group.");
+  } finally {
+    setRenamingGroup(false);
+  }
+}
+
   return (
     <div className="h-[calc(100vh-90px)] overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="relative h-full lg:grid lg:grid-cols-[360px_1fr]">
@@ -1482,6 +1631,18 @@ const currentUserIsStaff =
                     >
                     Group Info
                     </button>
+                )}
+                {selectedChat?.type === "group" && currentUserIsStaff && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGroupNameInput(selectedChat.name || "");
+                      setShowRenameGroupModal(true);
+                    }}
+                    className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                  >
+                    Rename Group
+                  </button>
                 )}
 
                 {isStaff && selectedChat?.type === "group" && (
@@ -2307,6 +2468,59 @@ const currentUserIsStaff =
         requestLoading={requestLoading}
     />
     )}
+
+    {showRenameGroupModal && selectedChat?.type === "group" && (
+  <div
+    className="fixed inset-0 z-99999 flex items-center justify-center bg-black/50 p-4"
+    onClick={() => {
+      if (!renamingGroup) {
+        setShowRenameGroupModal(false);
+      }
+    }}
+  >
+    <form
+      onSubmit={handleRenameGroup}
+      onClick={(e) => e.stopPropagation()}
+      className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900"
+    >
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+        Rename Group Chat
+      </h2>
+
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Enter a new name for this group.
+      </p>
+
+      <input
+        type="text"
+        value={groupNameInput}
+        onChange={(e) => setGroupNameInput(e.target.value)}
+        maxLength={100}
+        placeholder="Group name"
+        className="mt-5 h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-black dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      />
+
+      <div className="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          disabled={renamingGroup}
+          onClick={() => setShowRenameGroupModal(false)}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 disabled:opacity-60 dark:border-gray-700 dark:text-gray-300"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          disabled={renamingGroup || !groupNameInput.trim()}
+          className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {renamingGroup ? "Saving..." : "Save Name"}
+        </button>
+      </div>
+    </form>
+  </div>
+)}
     </div>
   );
 }
